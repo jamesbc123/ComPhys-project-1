@@ -76,12 +76,25 @@ def forward_sub(d_1, e_1, n, h, hh):
     d_tilda[1] = d[1]
     g_tilda[1] = g[1]
     
-    for i in range(2, n+1):
+    for i in range(2, n-1):
         d_tilda[i] = d[i] - e[i-1]**2 * 1/(d_tilda[i-1])
         g_tilda[i] = g[i] - (e[i-1]*g_tilda[i-1]/d_tilda[i-1])
         
-    return d_tilda, g_tilda
+    return d_tilda, g_tilda, e
     
+def backward_sub(d_tilda, g_tilda, e):
+    '''
+    This function backwards substitutes to calculate the 
+    discretized v(x).
+    
+    '''
+    v = np.zeros((n+1))
+    v[n] = g_tilda[n] / d_tilda[n]
+    
+    for i in range(n-2, 1):
+        v[i] = (g_tilda[i] - e[i]*v[i+1])*d_tilda[i]
+        
+    return v
 # first we should initialise the component of the diagonal
 # and off-diagonal elements and the number of points n.
 d_1 = 2
@@ -92,10 +105,13 @@ n = 10
 h = 1/(n+1)
 hh = h*h
 
-d_tilda, g_tilda = forward_sub(d_1, e_1, n, h, hh)
-
+d_tilda, g_tilda, e = forward_sub(d_1, e_1, n, h, hh)
 print('d tilda is',d_tilda)
 print('g tilda is', g_tilda)
+
+v = backward_sub(d_tilda, g_tilda, e)
+print(v)
+
 
 
 
