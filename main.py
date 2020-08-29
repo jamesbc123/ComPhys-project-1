@@ -30,7 +30,13 @@ def f_x(x):
     '''
     
     return 100*np.exp(-10*x)
-    
+
+def exact(x):
+    '''
+    This function returns the exact value
+    '''
+    return 1.0-(1-np.exp(-10))*x-np.exp(-10*x)
+
 def forward_sub_special_case(d_1):
     '''
     This function is incomplete!
@@ -46,16 +52,16 @@ def forward_sub_special_case(d_1):
     # initialise d tilda and first element
     d_tilda = np.zeros((n+1))
     d_tilda[1] = d_1
-    for i in range(2, n-1):
+    for i in range(2, n+1):
         d_tilda[i] = (i+1)/i
     
     return d_tilda
 
 def forward_sub(d_1, e_1, n, h, hh):
     '''
-    This function iteratively calculates d tilda and g tilda
-    g_tilda is equal to h**2*f(x_i). In the report it is written as 
-    b_tilda. 
+    This function iteratively calculates d tilda and g tilda for a 
+    tri-diagonal matrix. g_tilda is equal to h**2*f(x_i). In the report 
+    it is written as b_tilda. 
     
     Inputs: 
         d_1 : an integer
@@ -75,29 +81,66 @@ def forward_sub(d_1, e_1, n, h, hh):
     
     d_tilda[1] = d[1]
     g_tilda[1] = g[1]
-    
-    for i in range(2, n+1):
+   
+    for i in range(2, n):
+        #print('i',i)
         d_tilda[i] = d[i] - e[i-1]**2 * 1/(d_tilda[i-1])
         g_tilda[i] = g[i] - (e[i-1]*g_tilda[i-1]/d_tilda[i-1])
         
-    return d_tilda, g_tilda
+    return d_tilda, g_tilda, e, x
     
+def backward_sub(d_tilda, g_tilda, e, n):
+    '''
+    This function backwards substitutes to calculate the 
+    discretized v(x) for a tri-diagonal matrix. 
+    
+    '''
+    v = np.zeros((n+1))
+    v[n-1] = g_tilda[n-1] / d_tilda[n-1]
+    
+    for i in range(n-1, 0, -1):
+        #print('i is',i)
+        v[i] = (g_tilda[i] - e[i]*v[i+1])*d_tilda[i]
+        
+    return v
+
+def rel_error(x, v):
+    '''
+    This function compares the exact value to the 
+    numerical value.
+    
+    Inputs:
+        x: an array of the x points
+        v: an array of numerical values.
+    Outputs:
+        rel_err: an array of relative errors.
+    '''
+    rel_err = np.zeros((n+1))
+    for i in range(1, n):
+        #print('i is:',i)
+        rel_err[i] = np.abs((exact(x[i]) - v[i]) / (exact(x[i])))
+    
+    return rel_err
+
 # first we should initialise the component of the diagonal
 # and off-diagonal elements and the number of points n.
 d_1 = 2
 e_1 = -1
-n = 10
+n = 4
 
 # calculate the step length, h from n.
 h = 1/(n+1)
 hh = h*h
 
-d_tilda, g_tilda = forward_sub(d_1, e_1, n, h, hh)
-
+d_tilda, g_tilda, e, x = forward_sub(d_1, e_1, n, h, hh)
 print('d tilda is',d_tilda)
 print('g tilda is', g_tilda)
 
+v = backward_sub(d_tilda, g_tilda, e, n)
+print('numerical value, v is:', v)
 
+rel_err = rel_error(x, v)
+print('the relative error is:', rel_err)
 
 
 
