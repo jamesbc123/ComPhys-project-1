@@ -18,7 +18,7 @@ def generate_x_and_fx(h, n):
     '''
     x = np.zeros((n+1))
     fx = np.zeros((n+1))
-    for i in range(0, n):
+    for i in range(0, n+1):
         x[i] = i*h
         fx[i] = f_x(x[i])
         
@@ -59,6 +59,8 @@ def forward_sub_special_case(d_1):
 
 def forward_sub(d_1, e_1, n, h, hh):
     '''
+    First step of gaussian elimination for simple matrix (tri-diagonal).
+    
     This function iteratively calculates d tilda and g tilda for a 
     tri-diagonal matrix. g_tilda is equal to h**2*f(x_i). In the report 
     it is written as b_tilda. 
@@ -91,6 +93,8 @@ def forward_sub(d_1, e_1, n, h, hh):
     
 def backward_sub(d_tilda, g_tilda, e, n):
     '''
+    Second step of gaussian elimination for simple matrix.
+    
     This function backwards substitutes to calculate the 
     discretized v(x) for a tri-diagonal matrix. 
     
