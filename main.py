@@ -204,5 +204,5 @@ for n in n_schedule:
     plt.scatter(toi[filter_n]['x'], toi[filter_n]['v general'],
              color = 'b', label ='general')
     plt.legend()
-    plt.savefig("./Results/solution_vs_exact"+ str(n) +".png")
+    plt.savefig("./Results/solution_vs_exact_n="+ str(n) +".png")
     plt.close()
