@@ -5,20 +5,21 @@
 """
 import numpy as np
 
-def generate_x_and_fx(h, n):
+def generate_x_and_fx(n, h):
     '''
     A function to generate x points and f(x)
-    
+    Generates arrays of length n+2, since x_0 and 
+    x_n+1 exist, but equal 0.
     Inputs: 
         h: step length
         n: nbr of points
     Outputs
-        x: array of length n+1
-        fx: array of length n+1
+        x: array of length n+2
+        fx: array of length n+2
     '''
-    x = np.zeros((n+1))
-    fx = np.zeros((n+1))
-    for i in range(0, n):
+    x = np.zeros((n+2))
+    fx = np.zeros((n+2))
+    for i in range(0, n+1):
         x[i] = i*h
         fx[i] = f_x(x[i])
         
@@ -37,70 +38,69 @@ def exact(x):
     '''
     return 1.0-(1-np.exp(-10))*x-np.exp(-10*x)
 
-def forward_sub_special_case(d_1):
+def general_algo(n, hh, a, b, c):
     '''
-    This function is incomplete!
-    
-    This function returns d_tilda in the case of 
-    d_1 equals 2 and e_1 equals -1.
-    
-    Inputs:
-        d_1 : an integer
-    Outputs:
-        d_tilda : an array of length n-1
-    '''
-    # initialise d tilda and first element
-    d_tilda = np.zeros((n+1))
-    d_tilda[1] = d_1
-    for i in range(2, n+1):
-        d_tilda[i] = (i+1)/i
-    
-    return d_tilda
-
-def forward_sub(d_1, e_1, n, h, hh):
-    '''
-    This function iteratively calculates d tilda and g tilda for a 
-    tri-diagonal matrix. g_tilda is equal to h**2*f(x_i). In the report 
-    it is written as b_tilda. 
+    This function calculates v for the general case, where
+    a, b and c are different values. This is done by forward 
+    and backward substitution. 
     
     Inputs: 
-        d_1 : an integer
-        e_1 : an integer
-        n : an integer, the nbr of points.
+        a, b, c are arrays of length n+1
+        n: the nbr of points
+        hh: the step length squared
     Outputs:
-        d_tilda : an array of length n+1
-        g_tilda : an array of length n+1
+        v: solution, array of length n+2 
     '''
-    x, fx = generate_x_and_fx(h, n)
-    g = hh * fx
+    b_tilde = np.zeros((n+1))
+    g_tilde = np.zeros((n+1))
+    x, fx = generate_x_and_fx(n, h)
+    g = hh*fx
+    b_tilde[1] = b[1]
+    g_tilde[1] = g[1]
+    v = np.zeros((n+2))
     
-    d = d_1 * np.ones((n+1)) 
-    e = e_1 * np.ones((n+1)) 
-    d_tilda = np.zeros((n+1))
-    g_tilda = np.zeros((n+1))
-    
-    d_tilda[1] = d[1]
-    g_tilda[1] = g[1]
-   
-    for i in range(2, n):
-        #print('i',i)
-        d_tilda[i] = d[i] - e[i-1]**2 * 1/(d_tilda[i-1])
-        g_tilda[i] = g[i] - (e[i-1]*g_tilda[i-1]/d_tilda[i-1])
+    for i in range(2, n+1):
+        b_tilde[i] = b[i] - (c[i-1]*a[i-1]/b_tilde[i-1])
+        g_tilde[i] = g[i] - (g_tilde[i-1]*a[i-1]/b_tilde[i-1])
         
-    return d_tilda, g_tilda, e, x
-    
-def backward_sub(d_tilda, g_tilda, e, n):
-    '''
-    This function backwards substitutes to calculate the 
-    discretized v(x) for a tri-diagonal matrix. 
-    
-    '''
-    v = np.zeros((n+1))
-    v[n-1] = g_tilda[n-1] / d_tilda[n-1]
+    v[n] = g_tilde[n]/b_tilde[n]
     
     for i in range(n-1, 0, -1):
-        #print('i is',i)
-        v[i] = (g_tilda[i] - e[i]*v[i+1])*d_tilda[i]
+        v[i] = (g_tilde[i] - c[i]*v[i+1])/b_tilde[i] 
+    
+    return v
+
+def special_algo(n, hh, a, b):
+    '''
+    This function calculates v for a 
+    tri-diagonal matrix. g is equal to h**2*f(x_i), in the report 
+    it is written as b_tilda, but this makes it confusing since 
+    here we have b. Therefore it will be g here.
+    
+    Inputs: 
+        a, b, c are arrays of length n+1
+        n: the nbr of points
+        hh: the step length squared
+    Outputs:
+        v: solution, array of length n+2 
+    '''
+    
+    b_tilde = np.zeros((n+1))
+    g_tilde = np.zeros((n+1))
+    x, fx = generate_x_and_fx(n, h)
+    g = hh*fx
+    b_tilde[1] = b[1]
+    g_tilde[1] = g[1]
+    v = np.zeros((n+2))
+    
+    for i in range(2, n+1):
+        b_tilde[i] = b[i] - 1/b_tilde[i-1]
+        g_tilde[i] = g[i] - (a[i-1]*g_tilde[i-1]/b_tilde[i-1])
+        
+    v[n] = g_tilde[n] / b_tilde[n]
+    
+    for i in range(n-1, 0, -1):
+        v[i] = (g_tilde[i] - a[i]*v[i+1])*b_tilde[i]
         
     return v
 
@@ -115,32 +115,35 @@ def rel_error(x, v):
     Outputs:
         rel_err: an array of relative errors.
     '''
-    rel_err = np.zeros((n+1))
-    for i in range(1, n):
-        #print('i is:',i)
+    rel_err = np.zeros((n+2))
+    for i in range(1, n+1):
         rel_err[i] = np.abs((exact(x[i]) - v[i]) / (exact(x[i])))
     
     return rel_err
 
 # first we should initialise the component of the diagonal
 # and off-diagonal elements and the number of points n.
-d_1 = 2
-e_1 = -1
+a = -1
+b = 2
+c = -1
 n = 4
 
 # calculate the step length, h from n.
 h = 1/(n+1)
 hh = h*h
 
-d_tilda, g_tilda, e, x = forward_sub(d_1, e_1, n, h, hh)
-print('d tilda is',d_tilda)
-print('g tilda is', g_tilda)
+v_spec = special_algo(n, hh, a*np.ones((n+1)), b*np.ones((n+1)))
 
-v = backward_sub(d_tilda, g_tilda, e, n)
-print('numerical value, v is:', v)
+v_gen = general_algo(n, hh, a*np.ones((n+1)), 
+                 b*np.ones((n+1)), c*np.ones((n+1))
+                 )
 
-rel_err = rel_error(x, v)
-print('the relative error is:', rel_err)
+x, fx = generate_x_and_fx(n, h)
+rel_err_spec = rel_error(x, v_spec)
+rel_err_gen = rel_error(x, v_gen)
+
+print('the relative error in special case is:', rel_err_spec)
+print('the relative error in general case is:', rel_err_gen)
 
 
 
