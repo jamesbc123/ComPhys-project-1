@@ -4,6 +4,9 @@
 @author: jamesbc
 """
 import numpy as np
+import pandas as pd
+import matplotlib.pyplot as plt
+import seaborn as sns
 
 def generate_x_and_fx(n, h):
     '''
@@ -27,10 +30,16 @@ def generate_x_and_fx(n, h):
 
 def f_x(x):
     '''
-    returns f(x) from input x, float
+    returns f(x) from input x
     '''
-    
     return 100*np.exp(-10*x)
+
+def calc_exact(x):
+    len_x = len(x)
+    u = np.zeros((len_x))
+    for i in range(1, len_x-1):
+        u[i] = exact(x[i])
+    return u 
 
 def exact(x):
     '''
@@ -126,25 +135,59 @@ def rel_error(x, v):
 a = -1
 b = 2
 c = -1
-n = 4
+n_schedule = [5, 10, 100, 200, 400, 600, 800, 1000]
 
-# calculate the step length, h from n.
-h = 1/(n+1)
-hh = h*h
+toi = pd.DataFrame(columns=["n", "h", "x", "exact", "v special", "v general",
+                            "relative error spec",
+                            "relative error gen"])
 
-v_spec = special_algo(n, hh, a*np.ones((n+1)), b*np.ones((n+1)))
+for n in n_schedule:
+    # calculate the step length, h from n.
+    h = 1/(n+1)
+    hh = h*h
+    
+    v_spec = special_algo(n, hh, a*np.ones((n+1)), b*np.ones((n+1)))
+    
+    v_gen = general_algo(n, hh, a*np.ones((n+1)), 
+                     b*np.ones((n+1)), c*np.ones((n+1))
+                     )
+    
+    x, fx = generate_x_and_fx(n, h)
+    u = calc_exact(x)
+    
+    rel_err_spec = rel_error(x, v_spec)
+    rel_err_gen = rel_error(x, v_gen)
+    
+    ave_rel_err_spec = (rel_err_spec.sum()/n)
+    ave_rel_err_gen = (rel_err_gen.sum()/n)
+    
+    dat = np.array([[n for i in range(n+2)],
+                    [h for i in range(n+2)],
+                    x, u, v_spec, v_gen,
+                    rel_err_spec, rel_err_gen
+                    ])
+    
+    temp = pd.DataFrame(dat.T, columns = ["n", "h", "x", "exact", "v special",
+                                          "v general",
+                            "relative error spec",
+                            "relative error gen"])
+    
+    toi = toi.append(temp)
 
-v_gen = general_algo(n, hh, a*np.ones((n+1)), 
-                 b*np.ones((n+1)), c*np.ones((n+1))
-                 )
+# save to csv
+toi.to_csv('./toi.csv')
 
-x, fx = generate_x_and_fx(n, h)
-rel_err_spec = rel_error(x, v_spec)
-rel_err_gen = rel_error(x, v_gen)
+#plotting
+plt.figure(figsize=(10,10))
+plt.xlabel("log h")
+plt.ylabel("log relative error")
 
-print('the relative error in special case is:', rel_err_spec)
-print('the relative error in general case is:', rel_err_gen)
-
-
-
-
+for n in n_schedule:
+    filter_n = toi['n'] == n
+    plt.scatter(np.log(toi[filter_n]['h']), np.log(toi[filter_n]['relative error spec']),
+             color = 'r', label ='special')
+    plt.scatter(np.log(toi[filter_n]['h']), np.log(toi[filter_n]['relative error gen']),
+             color = 'b', label ='general')
+plt.legend()
+plt.savefig("./h_vs_error.png")
+plt.show()
