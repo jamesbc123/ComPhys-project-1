@@ -142,7 +142,6 @@ toi = pd.DataFrame(columns=["n", "h", "x", "exact", "v special", "v general",
                             "relative error gen"])
 
 for n in n_schedule:
-    # calculate the step length, h from n.
     h = 1/(n+1)
     hh = h*h
     
@@ -155,12 +154,13 @@ for n in n_schedule:
     x, fx = generate_x_and_fx(n, h)
     u = calc_exact(x)
     
+    # find the relative error in the general
+    # and the special or specific tri-diagonal
+    # case. 
     rel_err_spec = rel_error(x, v_spec)
     rel_err_gen = rel_error(x, v_gen)
     
-    ave_rel_err_spec = (rel_err_spec.sum()/n)
-    ave_rel_err_gen = (rel_err_gen.sum()/n)
-    
+    # add all this info to a csv file. 
     dat = np.array([[n for i in range(n+2)],
                     [h for i in range(n+2)],
                     x, u, v_spec, v_gen,
@@ -192,13 +192,11 @@ plt.legend()
 plt.savefig("./Results/h_vs_error.png")
 plt.show()
 
-
-
+# plot x against exact and v
 for n in n_schedule:
-    # plot x against exact and v
     plt.figure(figsize=(10,10))
     plt.xlabel("x")
-    plt.ylabel("solution")
+    plt.ylabel("numerical or exact solution")
 
     filter_n = toi['n'] == n
     plt.scatter(toi[filter_n]['x'], toi[filter_n]['exact'],
@@ -207,4 +205,4 @@ for n in n_schedule:
              color = 'b', label ='general')
     plt.legend()
     plt.savefig("./Results/solution_vs_exact"+ str(n) +".png")
-    plt.show()
+    plt.close()
