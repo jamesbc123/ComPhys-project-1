@@ -177,7 +177,7 @@ for n in n_schedule:
 # save to csv
 toi.to_csv('./toi.csv')
 
-#plotting
+#plot relative error against h.
 plt.figure(figsize=(10,10))
 plt.xlabel("log h")
 plt.ylabel("log relative error")
@@ -189,5 +189,22 @@ for n in n_schedule:
     plt.scatter(np.log(toi[filter_n]['h']), np.log(toi[filter_n]['relative error gen']),
              color = 'b', label ='general')
 plt.legend()
-plt.savefig("./h_vs_error.png")
+plt.savefig("./Results/h_vs_error.png")
 plt.show()
+
+
+
+for n in n_schedule:
+    # plot x against exact and v
+    plt.figure(figsize=(10,10))
+    plt.xlabel("x")
+    plt.ylabel("solution")
+
+    filter_n = toi['n'] == n
+    plt.scatter(toi[filter_n]['x'], toi[filter_n]['exact'],
+             color = 'black', label ='exact')
+    plt.scatter(toi[filter_n]['x'], toi[filter_n]['v general'],
+             color = 'b', label ='general')
+    plt.legend()
+    plt.savefig("./Results/solution_vs_exact"+ str(n) +".png")
+    plt.show()
