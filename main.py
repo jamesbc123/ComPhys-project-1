@@ -87,7 +87,7 @@ def special_algo(n, hh, a, b):
     here we have b. Therefore it will be g here.
     
     Inputs: 
-        a, b, c are arrays of length n+1
+        a, b are arrays of length n+1
         n: the nbr of points
         hh: the step length squared
     Outputs:
@@ -126,7 +126,7 @@ def rel_error(x, v):
     '''
     rel_err = np.zeros((n+2))
     for i in range(1, n+1):
-        rel_err[i] = np.abs((exact(x[i]) - v[i]) / (exact(x[i])))
+        rel_err[i] = np.log(np.abs((exact(x[i]) - v[i]) / (exact(x[i]))))
     
     return rel_err
 
@@ -177,16 +177,18 @@ for n in n_schedule:
 # save to csv
 toi.to_csv('./toi.csv')
 
-#plot relative error against h.
+#plot maximum relative error against h.
 plt.figure(figsize=(10,10))
 plt.xlabel("log h")
-plt.ylabel("log relative error")
+plt.ylabel("maximum relative error")
 
 for n in n_schedule:
     filter_n = toi['n'] == n
-    plt.scatter(np.log(toi[filter_n]['h']), np.log(toi[filter_n]['relative error spec']),
+    max_err_spec = toi[filter_n]['relative error spec'].max()
+    max_err_gen = toi[filter_n]['relative error gen'].max()
+    plt.scatter(np.log(toi[filter_n]['h'][0]), max_err_spec,
              color = 'r', label ='special')
-    plt.scatter(np.log(toi[filter_n]['h']), np.log(toi[filter_n]['relative error gen']),
+    plt.scatter(np.log(toi[filter_n]['h'][0]), max_err_gen,
              color = 'b', label ='general')
 plt.legend()
 plt.savefig("./Results/h_vs_error.png")
