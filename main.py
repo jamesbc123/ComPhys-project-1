@@ -87,7 +87,7 @@ def special_algo(n, hh, a, b):
     here we have b. Therefore it will be g here.
     
     Inputs: 
-        a, b, c are arrays of length n+1
+        a, b are arrays of length n+1
         n: the nbr of points
         hh: the step length squared
     Outputs:
@@ -126,7 +126,7 @@ def rel_error(x, v):
     '''
     rel_err = np.zeros((n+2))
     for i in range(1, n+1):
-        rel_err[i] = np.abs((exact(x[i]) - v[i]) / (exact(x[i])))
+        rel_err[i] = np.log(np.abs((exact(x[i]) - v[i]) / (exact(x[i]))))
     
     return rel_err
 
@@ -142,7 +142,6 @@ toi = pd.DataFrame(columns=["n", "h", "x", "exact", "v special", "v general",
                             "relative error gen"])
 
 for n in n_schedule:
-    # calculate the step length, h from n.
     h = 1/(n+1)
     hh = h*h
     
@@ -155,12 +154,13 @@ for n in n_schedule:
     x, fx = generate_x_and_fx(n, h)
     u = calc_exact(x)
     
+    # find the relative error in the general
+    # and the special or specific tri-diagonal
+    # case. 
     rel_err_spec = rel_error(x, v_spec)
     rel_err_gen = rel_error(x, v_gen)
     
-    ave_rel_err_spec = (rel_err_spec.sum()/n)
-    ave_rel_err_gen = (rel_err_gen.sum()/n)
-    
+    # add all this info to a csv file. 
     dat = np.array([[n for i in range(n+2)],
                     [h for i in range(n+2)],
                     x, u, v_spec, v_gen,
@@ -177,28 +177,28 @@ for n in n_schedule:
 # save to csv
 toi.to_csv('./toi.csv')
 
-#plot relative error against h.
+#plot maximum relative error against h.
 plt.figure(figsize=(10,10))
 plt.xlabel("log h")
-plt.ylabel("log relative error")
+plt.ylabel("maximum relative error")
 
 for n in n_schedule:
     filter_n = toi['n'] == n
-    plt.scatter(np.log(toi[filter_n]['h']), np.log(toi[filter_n]['relative error spec']),
+    max_err_spec = toi[filter_n]['relative error spec'].max()
+    max_err_gen = toi[filter_n]['relative error gen'].max()
+    plt.scatter(np.log(toi[filter_n]['h'][0]), max_err_spec,
              color = 'r', label ='special')
-    plt.scatter(np.log(toi[filter_n]['h']), np.log(toi[filter_n]['relative error gen']),
+    plt.scatter(np.log(toi[filter_n]['h'][0]), max_err_gen,
              color = 'b', label ='general')
 plt.legend()
 plt.savefig("./Results/h_vs_error.png")
 plt.show()
 
-
-
+# plot x against exact and v
 for n in n_schedule:
-    # plot x against exact and v
     plt.figure(figsize=(10,10))
     plt.xlabel("x")
-    plt.ylabel("solution")
+    plt.ylabel("numerical or exact solution")
 
     filter_n = toi['n'] == n
     plt.scatter(toi[filter_n]['x'], toi[filter_n]['exact'],
@@ -206,5 +206,5 @@ for n in n_schedule:
     plt.scatter(toi[filter_n]['x'], toi[filter_n]['v general'],
              color = 'b', label ='general')
     plt.legend()
-    plt.savefig("./Results/solution_vs_exact"+ str(n) +".png")
-    plt.show()
+    plt.savefig("./Results/solution_vs_exact_n="+ str(n) +".png")
+    plt.close()
