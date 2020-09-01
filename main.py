@@ -102,8 +102,9 @@ def special_algo(n, hh, a, b):
     g_tilde[1] = g[1]
     v = np.zeros((n+2))
     
+    
     for i in range(2, n+1):
-        b_tilde[i] = b[i] - 1/b_tilde[i-1]
+        b_tilde[i] = (i+1)/i
         g_tilde[i] = g[i] - (a[i-1]*g_tilde[i-1]/b_tilde[i-1])
         
     v[n] = g_tilde[n] / b_tilde[n]
@@ -126,8 +127,8 @@ def rel_error(x, v):
     '''
     rel_err = np.zeros((n+2))
     for i in range(1, n+1):
-        rel_err[i] = np.log(np.abs((exact(x[i]) - v[i]) / (exact(x[i]))))
-    
+        rel_err[i] = np.log10(np.abs((exact(x[i]) - v[i]) / (exact(x[i]))))
+    rel_err[0] = rel_err[-1] = -1e6
     return rel_err
 
 # first we should initialise the component of the diagonal
@@ -135,7 +136,7 @@ def rel_error(x, v):
 a = -1
 b = 2
 c = -1
-n_schedule = [5, 10, 100, 200, 400, 600, 800, 1000]
+n_schedule = [10, 100, 1000, 10000, int(1e5), int(1e6), int(1e7)]
 
 toi = pd.DataFrame(columns=["n", "h", "x", "exact", "v special", "v general",
                             "relative error spec",
@@ -174,8 +175,9 @@ for n in n_schedule:
     
     toi = toi.append(temp)
 
+
 # save to csv
-toi.to_csv('./toi.csv')
+toi.to_csv('./Results/toi.csv')
 
 #plot maximum relative error against h.
 plt.figure(figsize=(10,10))
@@ -184,11 +186,12 @@ plt.ylabel("maximum relative error")
 
 for n in n_schedule:
     filter_n = toi['n'] == n
-    max_err_spec = np.float64(toi[filter_n]['relative error spec'].max())
-    max_err_gen = np.float64(toi[filter_n]['relative error gen'].max())
-    plt.scatter(np.log(toi[filter_n]['h'][0]), max_err_spec,
-             color = 'r', label ='special')
-    plt.scatter(np.log(toi[filter_n]['h'][0]), max_err_gen,
+    #max_err_spec = (np.float64(toi[filter_n]['relative error spec'])).max()
+    max_err_gen = (np.float64(toi[filter_n]['relative error gen'])).max()
+    print("general case relative error is", max_err_gen)
+    #plt.scatter(np.log(toi[filter_n]['h'][0]), max_err_spec,
+    #         color = 'r', label ='special')
+    plt.scatter(np.log10(toi[filter_n]['h'][0]), max_err_gen,
              color = 'b', label ='general')
 plt.legend()
 plt.savefig("./Results/h_vs_error.png")
@@ -208,3 +211,4 @@ for n in n_schedule:
     plt.legend()
     plt.savefig("./Results/solution_vs_exact_n="+ str(n) +".png")
     plt.close()
+    
