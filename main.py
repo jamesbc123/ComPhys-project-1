@@ -142,7 +142,7 @@ toi = pd.DataFrame(columns=["n", "h", "x", "exact", "v special", "v general",
                             "relative error gen"])
 
 for n in n_schedule:
-    h = 1/(n+1)
+    h = np.float64(1/(n+1))
     hh = h*h
     
     v_spec = special_algo(n, hh, a*np.ones((n+1)), b*np.ones((n+1)))
@@ -184,8 +184,8 @@ plt.ylabel("maximum relative error")
 
 for n in n_schedule:
     filter_n = toi['n'] == n
-    max_err_spec = toi[filter_n]['relative error spec'].max()
-    max_err_gen = toi[filter_n]['relative error gen'].max()
+    max_err_spec = np.float64(toi[filter_n]['relative error spec'].max())
+    max_err_gen = np.float64(toi[filter_n]['relative error gen'].max())
     plt.scatter(np.log(toi[filter_n]['h'][0]), max_err_spec,
              color = 'r', label ='special')
     plt.scatter(np.log(toi[filter_n]['h'][0]), max_err_gen,
