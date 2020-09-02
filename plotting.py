@@ -13,7 +13,7 @@ plt.rcParams.update({'font.size': 22})
 plotNumVsSol = False
 
 toi = pd.read_csv("./Results/toi.csv")
-n_schedule = np.array([10, 100, 1e3, 1e4, 1e5], dtype=int)
+n_schedule = np.array([10, 100, 1e3, 1e4, 1e5, 1e6, 1e7], dtype=int)
 
 #plot maximum relative error against h.
 plt.figure(figsize=(10,10))

@@ -6,6 +6,7 @@
 import numpy as np
 import pandas as pd
 import time 
+from tqdm import tqdm
 
 def generate_x_and_fx(n, h):
     
@@ -149,7 +150,7 @@ toi = pd.DataFrame(columns=["n", "h", "x", "exact", "v special", "v general",
                             "relative error gen"])
 toiTiming = pd.DataFrame(columns=["n", "h", "timeSpec", "timeGen"])
 
-for n in n_schedule:
+for n in tqdm(n_schedule):
     h = np.float64(1/(n+1))
     hh = h*h
     x, fx = generate_x_and_fx(n, h)
