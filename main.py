@@ -5,12 +5,12 @@
 """
 import numpy as np
 import pandas as pd
-import matplotlib.pyplot as plt
-import seaborn as sns
+import time 
+from tqdm import tqdm
 
 def generate_x_and_fx(n, h):
-    '''
-    A function to generate x points and f(x)
+    
+    ''' A function to generate x points and f(x)
     Generates arrays of length n+2, since x_0 and 
     x_n+1 exist, but equal 0.
     Inputs: 
@@ -29,8 +29,8 @@ def generate_x_and_fx(n, h):
     return x, fx
 
 def f_x(x):
-    '''
-    returns f(x) from input x
+    
+    ''' Returns f(x) from input x
     '''
     return 100*np.exp(-10*x)
 
@@ -42,13 +42,15 @@ def calc_exact(x):
     return u 
 
 def exact(x):
-    '''
-    This function returns the exact value
+    
+    ''' Returns the exact value
     '''
     return 1.0-(1-np.exp(-10))*x-np.exp(-10*x)
 
-def general_algo(n, hh, a, b, c):
-    '''
+def general_algo(n, hh, fx, a, b, c):
+    
+    ''' Returns solution to general algo and time elapsed.
+    
     This function calculates v for the general case, where
     a, b and c are different values. This is done by forward 
     and backward substitution. 
@@ -60,27 +62,29 @@ def general_algo(n, hh, a, b, c):
     Outputs:
         v: solution, array of length n+2 
     '''
-    b_tilde = np.zeros((n+1))
-    g_tilde = np.zeros((n+1))
-    x, fx = generate_x_and_fx(n, h)
+    b_sub = np.zeros((n+1))
+    g_sub = np.zeros((n+1))
     g = hh*fx
-    b_tilde[1] = b[1]
-    g_tilde[1] = g[1]
+    b_sub[1] = b[1]
+    g_sub[1] = g[1]
     v = np.zeros((n+2))
     
+    start = time.time()
     for i in range(2, n+1):
-        b_tilde[i] = b[i] - (c[i-1]*a[i-1]/b_tilde[i-1])
-        g_tilde[i] = g[i] - (g_tilde[i-1]*a[i-1]/b_tilde[i-1])
-        
-    v[n] = g_tilde[n]/b_tilde[n]
+        ab = a[i-1]/b_sub[i-1]
+        b_sub[i] = b[i] - (c[i-1]*ab)
+        g_sub[i] = g[i] - (g_sub[i-1]*ab)
+    v[n] = g_sub[n]/b_sub[n]
     
     for i in range(n-1, 0, -1):
-        v[i] = (g_tilde[i] - c[i]*v[i+1])/b_tilde[i] 
-    
-    return v
+        v[i] = (g_sub[i] - c[i]*v[i+1])/b_sub[i]
+    finish = time.time()
+    return v, (finish-start)
 
-def special_algo(n, hh, a, b):
-    '''
+def special_algo(n, hh, fx, a, b):
+    
+    ''' Returns solution to special algo and time elapsed.
+    
     This function calculates v for a 
     tri-diagonal matrix. g is equal to h**2*f(x_i), in the report 
     it is written as b_tilda, but this makes it confusing since 
@@ -94,121 +98,90 @@ def special_algo(n, hh, a, b):
         v: solution, array of length n+2 
     '''
     
-    b_tilde = np.zeros((n+1))
-    g_tilde = np.zeros((n+1))
-    x, fx = generate_x_and_fx(n, h)
+    b_sub = np.zeros((n+1))
+    g_sub = np.zeros((n+1))
     g = hh*fx
-    b_tilde[1] = b[1]
-    g_tilde[1] = g[1]
+    b_sub[1] = b
+    g_sub[1] = g[1]
     v = np.zeros((n+2))
     
-    
+    start = time.time()
     for i in range(2, n+1):
-        b_tilde[i] = (i+1)/i
-        g_tilde[i] = g[i] - (a[i-1]*g_tilde[i-1]/b_tilde[i-1])
-        
-    v[n] = g_tilde[n] / b_tilde[n]
+        b_sub[i] = (i+1)/i
+        g_sub[i] = g[i] - (a*g_sub[i-1]/b_sub[i-1])
+    v[n] = g_sub[n] / b_sub[n]
     
     for i in range(n-1, 0, -1):
-        v[i] = (g_tilde[i] - a[i]*v[i+1])*b_tilde[i]
-        
-    return v
+        v[i] = (g_sub[i] - a*v[i+1])/b_sub[i]
+    finish = time.time()
+    return v, (finish-start)
 
-def rel_error(x, v):
-    '''
-    This function compares the exact value to the 
-    numerical value.
+def rel_error(u, v):
     
+    '''Returns relative error.
+    
+    This function compares the exact value to the numerical solution.
     Inputs:
-        x: an array of the x points
+        u: an array of the exact values.
         v: an array of numerical values.
     Outputs:
         rel_err: an array of relative errors.
     '''
     rel_err = np.zeros((n+2))
     for i in range(1, n+1):
-        rel_err[i] = np.log10(np.abs((exact(x[i]) - v[i]) / (exact(x[i]))))
+        rel_err[i] = np.log10(np.abs((u[i] - v[i])/u[i]))
+        
+    # There was a problem with the boundary points if the error
+    # is equal to 0 since it is logged. Therefore manually
+    # it has been set to a large negative value for 
+    # practical reasons. 
     rel_err[0] = rel_err[-1] = -1e6
     return rel_err
 
-# first we should initialise the component of the diagonal
+# First we should initialise the component of the diagonal
 # and off-diagonal elements and the number of points n.
 a = -1
 b = 2
 c = -1
-n_schedule = [10, 100, 1000, 10000, int(1e5), int(1e6), int(1e7)]
+n_schedule = np.array([10, 100, 1e3, 1e4, 1e5, 1e6, 1e7], dtype=int)
 
 toi = pd.DataFrame(columns=["n", "h", "x", "exact", "v special", "v general",
                             "relative error spec",
                             "relative error gen"])
+toiTiming = pd.DataFrame(columns=["n", "h", "timeSpec", "timeGen"])
 
-for n in n_schedule:
+for n in tqdm(n_schedule):
     h = np.float64(1/(n+1))
     hh = h*h
-    
-    v_spec = special_algo(n, hh, a*np.ones((n+1)), b*np.ones((n+1)))
-    
-    v_gen = general_algo(n, hh, a*np.ones((n+1)), 
-                     b*np.ones((n+1)), c*np.ones((n+1))
-                     )
-    
     x, fx = generate_x_and_fx(n, h)
     u = calc_exact(x)
     
-    # find the relative error in the general
-    # and the special or specific tri-diagonal
-    # case. 
-    rel_err_spec = rel_error(x, v_spec)
-    rel_err_gen = rel_error(x, v_gen)
+    v_spec, timeSpec = special_algo(n, hh, fx, a, b)
+    v_gen, timeGen = general_algo(n, hh, fx, a*np.ones((n+1)), 
+                     b*np.ones((n+1)), c*np.ones((n+1))
+                     )
+    rel_err_spec = rel_error(u, v_spec)
+    rel_err_gen = rel_error(u, v_gen)
     
-    # add all this info to a csv file. 
-    dat = np.array([[n for i in range(n+2)],
-                    [h for i in range(n+2)],
-                    x, u, v_spec, v_gen,
-                    rel_err_spec, rel_err_gen
-                    ])
+    # Update table of information. 
+    dat = np.array(
+        [[n for i in range(n+2)], [h for i in range(n+2)], x, u,
+        v_spec, v_gen, rel_err_spec, rel_err_gen])
     
-    temp = pd.DataFrame(dat.T, columns = ["n", "h", "x", "exact", "v special",
-                                          "v general",
-                            "relative error spec",
-                            "relative error gen"])
-    
+    temp = pd.DataFrame(
+        dat.T, columns = ["n", "h", "x", "exact", "v special", 
+        "v general", "relative error spec", "relative error gen"])
     toi = toi.append(temp)
-
-
-# save to csv
-toi.to_csv('./Results/toi.csv')
-
-#plot maximum relative error against h.
-plt.figure(figsize=(10,10))
-plt.xlabel("log h")
-plt.ylabel("maximum relative error")
-
-for n in n_schedule:
-    filter_n = toi['n'] == n
-    #max_err_spec = (np.float64(toi[filter_n]['relative error spec'])).max()
-    max_err_gen = (np.float64(toi[filter_n]['relative error gen'])).max()
-    print("general case relative error is", max_err_gen)
-    #plt.scatter(np.log(toi[filter_n]['h'][0]), max_err_spec,
-    #         color = 'r', label ='special')
-    plt.scatter(np.log10(toi[filter_n]['h'][0]), max_err_gen,
-             color = 'b', label ='general')
-plt.legend()
-plt.savefig("./Results/h_vs_error.png")
-plt.show()
-
-# plot x against exact and v
-for n in n_schedule:
-    plt.figure(figsize=(10,10))
-    plt.xlabel("x")
-    plt.ylabel("numerical or exact solution")
-
-    filter_n = toi['n'] == n
-    plt.scatter(toi[filter_n]['x'], toi[filter_n]['exact'],
-             color = 'black', label ='exact')
-    plt.scatter(toi[filter_n]['x'], toi[filter_n]['v general'],
-             color = 'b', label ='general')
-    plt.legend()
-    plt.savefig("./Results/solution_vs_exact_n="+ str(n) +".png")
-    plt.close()
     
+    # Update timing table of information
+    tempTiming = pd.DataFrame({"n": n, "h": h, "timeSpec": timeSpec,
+                               "timeGen": timeGen}, index=[0])
+    toiTiming = toiTiming.append(tempTiming)
+
+# Save to csv
+toi.to_csv('./Results/toi.csv')
+toiTiming.to_csv('./Results/toiTiming.csv')
+
+
+
+ 
