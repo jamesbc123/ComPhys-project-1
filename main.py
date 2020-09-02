@@ -105,18 +105,18 @@ def special_algo(n, hh, fx, a, b):
     g_sub[1] = g[1]
     v = np.zeros((n+2))
     
-    # Begin timing
+    # Start timing
     start = time.time()
     
     for i in range(2, n+1):
         b_sub[i] = (i+1)/i
-        g_sub[i] = g[i] + g_sub[i-1]*((i-1.0)/i)
+        g_sub[i] = g[i] + (g_sub[i-1]/b_sub[i-1])
     v[n] = g_sub[n] / b_sub[n]
     
     for i in range(n-1, 0, -1):
-        v[i] = (g_sub[i] + v[i+1])*(i/(i+1.0))
+        v[i] = (g_sub[i] + v[i+1])/b_sub[i]
     
-    # End timing
+    # End timing    
     finish = time.time()
     
     return v, (finish-start)
