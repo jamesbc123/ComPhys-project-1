@@ -5,8 +5,7 @@
 """
 import numpy as np
 import pandas as pd
-import matplotlib.pyplot as plt
-import seaborn as sns
+import time 
 
 def generate_x_and_fx(n, h):
     '''
@@ -66,18 +65,18 @@ def general_algo(n, hh, fx, a, b, c):
     b_sub[1] = b[1]
     g_sub[1] = g[1]
     v = np.zeros((n+2))
-    print("general")
+    
+    start = time.time()
     for i in range(2, n+1):
         ab = a[i-1]/b_sub[i-1]
         b_sub[i] = b[i] - (c[i-1]*ab)
         g_sub[i] = g[i] - (g_sub[i-1]*ab)
-        print("g is:", g_sub[i])
     v[n] = g_sub[n]/b_sub[n]
     
     for i in range(n-1, 0, -1):
-        v[i] = (g_sub[i] - c[i]*v[i+1])/b_sub[i] 
-        print("v is:", v[i])
-    return v
+        v[i] = (g_sub[i] - c[i]*v[i+1])/b_sub[i]
+    finish = time.time()
+    return v, (finish-start)
 
 def special_algo(n, hh, fx, a, b):
     '''
@@ -101,17 +100,16 @@ def special_algo(n, hh, fx, a, b):
     g_sub[1] = g[1]
     v = np.zeros((n+2))
     
+    start = time.time()
     for i in range(2, n+1):
         b_sub[i] = (i+1)/i
-        #print("b", b_sub[i])
         g_sub[i] = g[i] - (a*g_sub[i-1]/b_sub[i-1])
-        print("g", g_sub[i])
     v[n] = g_sub[n] / b_sub[n]
     
     for i in range(n-1, 0, -1):
-        v[i] = (g_sub[i] - a*v[i+1])*b_sub[i]
-        print("v is", v[i])
-    return v
+        v[i] = (g_sub[i] - a*v[i+1])/b_sub[i]
+    finish = time.time()
+    return v, (finish-start)
 
 def rel_error(u, v):
     '''
@@ -140,11 +138,12 @@ def rel_error(u, v):
 a = -1
 b = 2
 c = -1
-n_schedule = [10]
+n_schedule = np.array([10, 100, 1e3, 1e4, 1e5], dtype=int)
 
 toi = pd.DataFrame(columns=["n", "h", "x", "exact", "v special", "v general",
                             "relative error spec",
                             "relative error gen"])
+toiTiming = pd.DataFrame(columns=["n", "h", "timeSpec", "timeGen"])
 
 for n in n_schedule:
     h = np.float64(1/(n+1))
@@ -153,9 +152,9 @@ for n in n_schedule:
     x, fx = generate_x_and_fx(n, h)
     u = calc_exact(x)
     
-    v_spec = special_algo(n, hh, fx, a, b)
+    v_spec, timeSpec = special_algo(n, hh, fx, a, b)
     
-    v_gen = general_algo(n, hh, fx, a*np.ones((n+1)), 
+    v_gen, timeGen = general_algo(n, hh, fx, a*np.ones((n+1)), 
                      b*np.ones((n+1)), c*np.ones((n+1))
                      )
     rel_err_spec = rel_error(u, v_spec)
@@ -170,48 +169,17 @@ for n in n_schedule:
     
     temp = pd.DataFrame(dat.T, columns = ["n", "h", "x", "exact", "v special",
                                           "v general",
-                            "relative error spec",
-                            "relative error gen"])
-    
+                                          "relative error spec",
+                                          "relative error gen"])
     toi = toi.append(temp)
-
+    tempTiming = pd.DataFrame({"n": n, "h": h, "timeSpec": timeSpec,
+                               "timeGen": timeGen}, index=[0])
+    toiTiming = toiTiming.append(tempTiming)
 
 # save to csv
 toi.to_csv('./Results/toi.csv')
-
-#plot maximum relative error against h.
-plt.figure(figsize=(10,10))
-plt.xlabel("log h")
-plt.ylabel("maximum relative error")
-
-for n in n_schedule:
-    filter_n = toi['n'] == n
-    max_err_spec = (np.float64(toi[filter_n]['relative error spec'])).max()
-    max_err_gen = (np.float64(toi[filter_n]['relative error gen'])).max()
-    print("general case relative error is", max_err_gen)
-    plt.scatter(np.log10(toi[filter_n]['h'][0]), max_err_spec,
-             color = 'r', label ='special')
-    plt.scatter(np.log10(toi[filter_n]['h'][0]), max_err_gen,
-             color = 'b', label ='general')
-plt.legend()
-plt.savefig("./Results/h_vs_error.png")
-plt.show()
+toiTiming.to_csv('./Results/toiTiming.csv')
 
 
-# plot x against exact and v
-for n in n_schedule:
-    plt.figure(figsize=(10,10))
-    plt.xlabel("x")
-    plt.ylabel("numerical or exact solution")
 
-    filter_n = toi['n'] == n
-    plt.scatter(toi[filter_n]['x'], toi[filter_n]['exact'],
-             color = 'black', label ='exact')
-    plt.scatter(toi[filter_n]['x'], toi[filter_n]['v general'],
-             color = 'b', label ='general')
-    plt.scatter(toi[filter_n]['x'], toi[filter_n]['v special'],
-             color = 'r', label ='special')
-    plt.legend()
-    plt.savefig("./Results/solution_vs_exact_n="+ str(n) +".png")
-    plt.close()
  
