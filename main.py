@@ -8,8 +8,8 @@ import pandas as pd
 import time 
 
 def generate_x_and_fx(n, h):
-    '''
-    A function to generate x points and f(x)
+    
+    ''' A function to generate x points and f(x)
     Generates arrays of length n+2, since x_0 and 
     x_n+1 exist, but equal 0.
     Inputs: 
@@ -28,8 +28,8 @@ def generate_x_and_fx(n, h):
     return x, fx
 
 def f_x(x):
-    '''
-    returns f(x) from input x
+    
+    ''' Returns f(x) from input x
     '''
     return 100*np.exp(-10*x)
 
@@ -41,13 +41,15 @@ def calc_exact(x):
     return u 
 
 def exact(x):
-    '''
-    This function returns the exact value
+    
+    ''' Returns the exact value
     '''
     return 1.0-(1-np.exp(-10))*x-np.exp(-10*x)
 
 def general_algo(n, hh, fx, a, b, c):
-    '''
+    
+    ''' Returns solution to general algo and time elapsed.
+    
     This function calculates v for the general case, where
     a, b and c are different values. This is done by forward 
     and backward substitution. 
@@ -79,7 +81,9 @@ def general_algo(n, hh, fx, a, b, c):
     return v, (finish-start)
 
 def special_algo(n, hh, fx, a, b):
-    '''
+    
+    ''' Returns solution to special algo and time elapsed.
+    
     This function calculates v for a 
     tri-diagonal matrix. g is equal to h**2*f(x_i), in the report 
     it is written as b_tilda, but this makes it confusing since 
@@ -112,10 +116,10 @@ def special_algo(n, hh, fx, a, b):
     return v, (finish-start)
 
 def rel_error(u, v):
-    '''
-    This function compares the exact value to the 
-    numerical value.
     
+    '''Returns relative error.
+    
+    This function compares the exact value to the numerical solution.
     Inputs:
         u: an array of the exact values.
         v: an array of numerical values.
@@ -126,19 +130,19 @@ def rel_error(u, v):
     for i in range(1, n+1):
         rel_err[i] = np.log10(np.abs((u[i] - v[i])/u[i]))
         
-    # there was a problem with the boundary points if the error
+    # There was a problem with the boundary points if the error
     # is equal to 0 since it is logged. Therefore manually
     # it has been set to a large negative value for 
     # practical reasons. 
     rel_err[0] = rel_err[-1] = -1e6
     return rel_err
 
-# first we should initialise the component of the diagonal
+# First we should initialise the component of the diagonal
 # and off-diagonal elements and the number of points n.
 a = -1
 b = 2
 c = -1
-n_schedule = np.array([10, 100, 1e3, 1e4, 1e5], dtype=int)
+n_schedule = np.array([10, 100, 1e3, 1e4, 1e5, 1e6, 1e7], dtype=int)
 
 toi = pd.DataFrame(columns=["n", "h", "x", "exact", "v special", "v general",
                             "relative error spec",
@@ -148,35 +152,32 @@ toiTiming = pd.DataFrame(columns=["n", "h", "timeSpec", "timeGen"])
 for n in n_schedule:
     h = np.float64(1/(n+1))
     hh = h*h
-    
     x, fx = generate_x_and_fx(n, h)
     u = calc_exact(x)
     
     v_spec, timeSpec = special_algo(n, hh, fx, a, b)
-    
     v_gen, timeGen = general_algo(n, hh, fx, a*np.ones((n+1)), 
                      b*np.ones((n+1)), c*np.ones((n+1))
                      )
     rel_err_spec = rel_error(u, v_spec)
     rel_err_gen = rel_error(u, v_gen)
     
-    # add all this info to a csv file. 
-    dat = np.array([[n for i in range(n+2)],
-                    [h for i in range(n+2)],
-                    x, u, v_spec, v_gen,
-                    rel_err_spec, rel_err_gen
-                    ])
+    # Update table of information. 
+    dat = np.array(
+        [[n for i in range(n+2)], [h for i in range(n+2)], x, u,
+        v_spec, v_gen, rel_err_spec, rel_err_gen])
     
-    temp = pd.DataFrame(dat.T, columns = ["n", "h", "x", "exact", "v special",
-                                          "v general",
-                                          "relative error spec",
-                                          "relative error gen"])
+    temp = pd.DataFrame(
+        dat.T, columns = ["n", "h", "x", "exact", "v special", 
+        "v general", "relative error spec", "relative error gen"])
     toi = toi.append(temp)
+    
+    # Update timing table of information
     tempTiming = pd.DataFrame({"n": n, "h": h, "timeSpec": timeSpec,
                                "timeGen": timeGen}, index=[0])
     toiTiming = toiTiming.append(tempTiming)
 
-# save to csv
+# Save to csv
 toi.to_csv('./Results/toi.csv')
 toiTiming.to_csv('./Results/toiTiming.csv')
 

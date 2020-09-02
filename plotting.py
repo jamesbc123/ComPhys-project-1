@@ -7,6 +7,7 @@ Created on Tue Sep  1 12:56:53 2020
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
+import pep8
 plt.rcParams.update({'font.size': 22})
 
 plotNumVsSol = False
@@ -23,7 +24,6 @@ label_added = False
 for n in n_schedule:
     filter_n = toi['n'] == n
     h = 1/(n+1)
-    
     
     max_err_spec = (np.float64(toi[filter_n]['relative error spec'])).max()
     max_err_gen = (np.float64(toi[filter_n]['relative error gen'])).max()
