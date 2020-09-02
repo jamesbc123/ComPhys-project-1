@@ -7,7 +7,8 @@ Created on Tue Sep  1 12:56:53 2020
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
-import pep8
+
+# Change the font size of all figures.
 plt.rcParams.update({'font.size': 22})
 
 plotNumVsSol = False
