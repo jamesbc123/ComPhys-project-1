@@ -27,6 +27,10 @@ def createTriDiagonalMatrix(N, a, b, c):
         M[i, i+1] = c
     return M
 
+# IMPORTANT: Since M is a tridiagonal matrix it's not necessary to create the matrix
+# beforehand. Creating the matrix is very memory costly since its nxn (n^2). It's better to
+# just take each diagonal as inputs (as vectors, ~n elements each). The C++ translation
+# of this program will do it this way.
 def createAugmentedMatrix(M, vec):
     # This appends the vector vec as the final column of M.
     # Note: The length of vec must be compatible with M. In other words, the length
