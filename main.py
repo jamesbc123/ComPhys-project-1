@@ -105,15 +105,20 @@ def special_algo(n, hh, fx, a, b):
     g_sub[1] = g[1]
     v = np.zeros((n+2))
     
+    # Start timing
     start = time.time()
+    
     for i in range(2, n+1):
         b_sub[i] = (i+1)/i
-        g_sub[i] = g[i] - (a*g_sub[i-1]/b_sub[i-1])
+        g_sub[i] = g[i] + (g_sub[i-1]/b_sub[i-1])
     v[n] = g_sub[n] / b_sub[n]
     
     for i in range(n-1, 0, -1):
-        v[i] = (g_sub[i] - a*v[i+1])/b_sub[i]
+        v[i] = (g_sub[i] + v[i+1])/b_sub[i]
+    
+    # End timing    
     finish = time.time()
+    
     return v, (finish-start)
 
 def rel_error(u, v):
@@ -143,7 +148,7 @@ def rel_error(u, v):
 a = -1
 b = 2
 c = -1
-n_schedule = np.array([10, 100, 1e3, 1e4, 1e5, 1e6, 1e7], dtype=int)
+n_schedule = np.array([10, 100, 1e3, 1e4, 1e5, 1e6], dtype=int)
 
 toi = pd.DataFrame(columns=["n", "h", "x", "exact", "v special", "v general",
                             "relative error spec",
