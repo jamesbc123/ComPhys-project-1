@@ -1,6 +1,8 @@
 #include <iostream>
 #include "gaussElim.h"
 
+using namespace std
+
 double x0 = 0;  // Starting point
 double x_np1 = 1;  // End point (x_(n+1))
 // Boundary conditions:
