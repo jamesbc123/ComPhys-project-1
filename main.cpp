@@ -11,8 +11,4 @@ double u_np1 = 0; // u_(n+1) = u(xn) = u(1)
 
 int n = 1000;  // Number of unknowns (u1, u2, ... , un).
 
-//test comment
-
-
-
 // HUSKE DELETE[] på slutten av main().
