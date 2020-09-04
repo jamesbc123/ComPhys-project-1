@@ -1,9 +1,11 @@
 #include <iostream>
 #include <cmath>
 #include "gaussElim.h"
+// SPØRSMÅL:
+// Hva returnerer jeg i general_algo? Er det addressen til første elementet i lista.
+// Skal man gjøre LU-dekomponering med armadillo? Eller er LU-dekomponering inkludert i C++?
 
-
-double* general_algo(int n, double x_0, double x_np1, , a, b, c)
+double* general_algo(int n, double x_0, double x_np1, a, b, c)
 {
     /* 
     Returns solution to general algo and time elapsed.
@@ -13,7 +15,10 @@ double* general_algo(int n, double x_0, double x_np1, , a, b, c)
     and backward substitution. 
 
     Inputs: 
-        a, b, c are arrays of length n+1
+        a, b, c are vectors.
+        a: Lower diagonal elements (n-1 elements).
+        b: Middle diagonal (n elements).
+        c: Upper diagonal (n-1 elements).
         n: the number of points excluding the two end points (in total n+2 points).
         x_0: Start point.
         x_np1: End point (x_(n+1)).
@@ -21,9 +26,11 @@ double* general_algo(int n, double x_0, double x_np1, , a, b, c)
     Outputs:
         v: solution, array of length n+2.
     */
-   x
-    // Calculate h. Using long double for increased precision.
+
+    // Calculate h. Using long double for increased precision. (Does *everything* have to be long double)
+    // in order to get less numerical errors?)
     long double h = (x_np1-x_0)/(n+1);
+    long double hh = h*h;
 
     // Create xList from end points (x_0, x_np1).
     idx = 0;
@@ -34,22 +41,74 @@ double* general_algo(int n, double x_0, double x_np1, , a, b, c)
 
     // Create fList (an array containing f(x) for all elements in xList, including end points):
     double *fList = new double[n+2];
-    fList[0] = x_0; // End points.
-    xList[n+1] = x_np1;
+    double *gList = new double[n+2];
+
+    double *solution = new double[n+2]; // Solution for v = [v0, v1, v2, ..., v_n, v_(n+1)].
+    solution[0] = 0; solution[n+2] = 0; // Boundary conditions.
+
+    fList[0] = f(x_0); // End points (both f and g arrays).
+    gList[0] = hh*fList[0];
+
+    fList[n+1] = f(x_np1);
+    gList[n+1] = hh*fList[n+1];     // Remember: g_i = h^2*f_i  (g_i is b_tilde_i in the project 1 description pdf.)
+
     for (i=0; i<=n+1; i++) {
         fList[i] = f(xList[i]);
+        gList[i] = hh*fList[i];
     }
 
-    // FERDIG MED fList, FORTSETT MED FORWARD SUBSTITUTION ******************************
+    // Now: The set of linear equations we need to solve is Av = g (solve for the vector v), for a tridiagonal matrix A.
+    // The set of equations will not be solved by creating the actual matrix and going through each row, but just by
+    // taking the diagonal elements as inputs and creating each matrix row 'on the go' inside the for-loop. (Because 
+    // creating the nxn matrix is computationally expensive.) 
+    // It is solved with gaussian elimination, which is first forward substitution and then backward substitution.
 
-    // Forward substitution:
+    // Forward substitution (start at row 2 and to all subsequent rows).
+    
+    for (i=1; i<=n-1; i++) { // Forward substitution goes from row 2 (index 1) through row n (index n-1).
+        // The matrix A is defined by the diagonal vectors a, b, c.
+        // Note: the lower diagonal, a, starts at row 2, and the middle and upper diagonals, b and c, starts at row 1.
+        // This means that a[i] is on row i and b[i] and c[i] are on row i-1. 
 
+        // Pre-calculate factor:
+        double factorDiv = b[i-1]; // Divide the row by this number before subtracting (Gaussian elimination).
+        // (The element directly above the leading element of the current row.)
+        double factorMult = a[i]; // Multiply the row by this number before subtracting. (Leading element of the current row.)
+        double factor = factorMult/factorDiv; // This is the factor to be multiplied to the row before subtracting.
+=
+        // First non-zero column term (on current row, row i):
+        //a[i-1] = a[i-1] - b[i-1]*f; // We don't need 'a' for any later calculations, so this calculation is omitted.
+        
+        // Second non-zero column term:
+        b[i] = b[i] - c[i-1]*f; // 'b' is used in the backward substitution, so this calculation is necessary.
+        
+        // Since the matrix is tri-diagonal, the third non-zero column element has a zero directly above it,
+        // so nothing is subtracted. So nothing happens here. c[i] = c[i] - 0.
 
-    // Backward substitution:
+        // Final column element:
+        //M[i,-1] = M[i,-1] - M[i-1,-1]*f
+        g[i] = g[i] - g[i-1]*factor;
+    }
 
+    // Backward substitution and normalization (and the solution):
+    for (i=n-2; i>=0; i--) { // Backward substitution goes from row n-1 (index n-2) and row 1 (index 0).
+        // Pre-calculate factor:
+        double factorDiv = b[i+1];
+        double factorMult = c[i];
+        double factor = factorMult/factorDiv;
+
+        // First non-zero column element is eliminated:
+        //c[i] = c[i] - b[i+1]*factor =0 
+
+        // Final column element:
+        g[i] = g[i] - g[i+1]*factor;
+        // Normalize the diagonal (b) in order to get the solution:
+        g[i] = g[i]/b[i];
+        solution[i] = g[i];
+    }
 
     // Return solution:
-
+    return solution;
 }
 
 
