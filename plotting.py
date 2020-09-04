@@ -31,9 +31,9 @@ for n in n_schedule:
     
     if not label_added:
         plt.scatter(np.log10(h), max_err_spec,
-                 color = 'tab:orange', marker = "^", label ='Special solution')
+                 color = 'tab:orange', marker = "^", label ='Special algorithm')
         plt.scatter(np.log10(h), max_err_gen,
-                 color = 'b', label ='General solution')
+                 color = 'b', label ='General algorithm')
         label_added = True
     else:
         plt.scatter(np.log10(h), max_err_spec,
