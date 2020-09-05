@@ -1,8 +1,13 @@
 #include <iostream>
+#include <fstream>
 #include "gaussElim.h"
+#include <string>
+#include <iomanip>
+#include <cmath>
 
-using namespace std
-
+using namespace std;
+// object for output files
+ofstream ofile;
 
 int main(int argc, char *argv[]){
   int exponent; 
@@ -18,7 +23,7 @@ int main(int argc, char *argv[]){
         exponent = atoi(argv[2]);
     }
 
-    double x0 = 0;  // Starting point
+    double x_0 = 0;  // Starting point
     double x_np1 = 1;  // End point (x_(n+1))
     
     // Boundary conditions:
@@ -43,8 +48,9 @@ int main(int argc, char *argv[]){
       ofile.open(fileout);
       ofile << setiosflags(ios::showpoint | ios::uppercase);
       //      ofile << "       x:             approx:          exact:       relative error" << endl;
-
-      vSpecial, timeSpecial = special_algo(n, x_0, x_np1, a , b);
+      double *v = new double[n+2];
+      double time_special;
+      v_special, time_special = special_algo(n, x_0, x_np1, a , b);
       double *x = new double[n+2];
       double *u = new double[n+2];
       x[0] = x_0; // End points.
@@ -54,7 +60,8 @@ int main(int argc, char *argv[]){
           x[i] = x_0 + i*h;
           u[i] = exact(x[i]);
       }
-      double rel_err = relative_error(vSpecial, u);
+      double *rel_err = new double [n+2];
+      rel_err = relative_error(v_special, u);
 
       ofile << setw(15) << setprecision(8) << rel_err << endl;
       

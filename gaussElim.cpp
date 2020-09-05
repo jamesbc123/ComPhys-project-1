@@ -3,7 +3,7 @@
 #include "gaussElim.h"
 #include "time.h"
 
-double* general_algo(int n, double x_0, double x_np1, , a, b, c)
+double* general_algo(int n, double x_0, double x_np1, double a, double b, double c)
 {
     /* 
     Returns solution to general algo and time elapsed.
@@ -53,7 +53,7 @@ double* general_algo(int n, double x_0, double x_np1, , a, b, c)
 }
 
 
-double* special_algo(int n, double x_0, double x_np1, a, b)
+double* special_algo(int n, double x_0, double x_np1, int a, int b)
 {
 /* Returns solution to the special algorithm and elapsed time.
 
@@ -109,8 +109,26 @@ for (i=n-1; i>0; i--){
 finish = clock();
 
 delete [] xList; delete [] fList; delete [] g;
-delete [] b_sub; delete [] g_sub; delete [] v;
+delete [] b_sub; delete [] g_sub;
 
 return v, ((finish - start)/CLOCKS_PER_SEC); 
 // End special algo function
+}
+
+double* relative_error(double v, double u){
+    /* Returns the relative error between v and u.
+    
+    This function compares the exact value to the numerical solution.
+    Inputs:
+        u: an array of the exact values.
+        v: an array of numerical values.
+    Outputs:
+        rel_err: an array of relative errors.
+    */
+    
+    double *rel_err = new double [n+2];
+    for (i=1, i<=n, i++){
+        rel_err[i] = log10(fabs((u[i] - v[i])/u[i]))
+    }
+    return rel_err;
 }
