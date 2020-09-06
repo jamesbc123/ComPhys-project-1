@@ -98,7 +98,7 @@ double* special_algo(int n, double x_0, double x_np1, int a, int b) {
     double *xList = new double[n+2]; double *v = new double[n+2];
     double *b_sub = new double[n+2]; double *g_sub = new double[n+2];
 
-    // Create xList from end points (x_0, x_np1).
+    // Create xList:
     xList[0] = x_0; // End points.
     xList[n+1] = x_np1;
 
