@@ -13,15 +13,15 @@ double* general_algo(int n, double x_0, double x_np1, double a, double b, double
     and backward substitution. 
 
     Inputs: 
-        a, b, c are arrays of length n+1
+        a, b, c are the diagonal arrays.
+        a has length n, b has length n+1, c has length n.
         n: the number of points excluding the two end points (in total n+2 points).
         x_0: Start point.
         x_np1: End point (x_(n+1)).
-        fx: The values of f(x) for 
     Outputs:
         v: solution, array of length n+2.
     */
-   x
+
     // Calculate h. Using long double for increased precision.
     long double h = (x_np1-x_0)/(n+1);
 
@@ -34,22 +34,47 @@ double* general_algo(int n, double x_0, double x_np1, double a, double b, double
 
     // Create fList (an array containing f(x) for all elements in xList, including end points):
     double *fList = new double[n+2];
-    fList[0] = x_0; // End points.
-    xList[n+1] = x_np1;
-    for (i=0; i<=n+1; i++) {
+    double *gList = new double[n+2];    // g_i = h^2*f_i
+    double *solution = new double[n+2]; // The solution of v.
+    solution[0] = 0; solution[n+1] = 0; // Boundary conditions.
+
+    for (i=0; i<=n+1; i++) { // Including end points.
         fList[i] = f(xList[i]);
+        gList[i] = hh*fList[i];
     }
 
-    // FERDIG MED fList, FORTSETT MED FORWARD SUBSTITUTION ******************************
-
     // Forward substitution:
+    double factorDiv; // These factors will be used in the forward and backward substitutions.
+    double factorMult;
+    double factor;
+    for (i=1; i<=n-1; i++) { // Start at row 2 (index 1), end at final row (row n, index n-1).
+        factorDiv = b[i-1];
+        factorMult = a[i-1];
+        factor = factorMult/factorDiv;
 
+        // First non-zero element in the row:
+        b[i] = b[i] - c[i-1]*factor;
+        // Final element in the row:
+        g[i] = g[i] - g[i-1]*factor;
+    }
 
     // Backward substitution:
+    for (i=n-2; i>=0; i--) { // Start at row n-1 (index n-2), end at first row (row 1, index 0).
+        factorDiv = b[i+1];
+        factorMult = c[i];
+        factor = factorMult/factorDiv;
+        // All upper diagonal elements gets eliminated.
+        // Final element in the row:
+        g[i] = g[i] - g[i+1]*factor;
+    }
 
+    // Normalize the diagonal (divide all row i by b[i] for all rows) in order to get the 
+    // solution for v:
+    for (i=0; i<=n-1; i++) {
+        solution[i] = g[i]/b[i];
+    }
 
-    // Return solution:
-
+    return solution;
 }
 
 
