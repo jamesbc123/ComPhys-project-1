@@ -37,14 +37,14 @@ int main() {
     double *xList = new double[n+2];
     xList[0] = x_0;
     xList[n+1] = x_np1;
-    for (i=1; i<=n; i++) { xList[i] = x_0 + i*h; } 
+    for (int i=1; i<=n; i++) { xList[i] = x_0 + i*h; } 
 
     // ### STEP 2 ### Get the solution of the differential equation.
     // Make the diagonal arrays:
     double *a = new double[n-1];    // Lower diagonal.
     double *b = new double[n];      // Middle diagonal.
     double *c = new double[n-1];    // Upper diagonal.
-    for (i=0; i<=n-1; i++) {
+    for (int i=0; i<=n-1; i++) {
         a[i] = -1;
         b[i] = 2;
         c[i] = -1;
@@ -59,8 +59,12 @@ int main() {
     double* valueList = solution;   // The y-axis of the plot.
 
     // ### STEP 4 ### Write the solution to a .csv file.
-    string fileName = 'data.txt'; // Or 'data.csv'?
+    string fileName = "data.txt"; // Or 'data.csv'?
     writeDataToCSV(argumentList, valueList, fileName);
+
+    // Delete all allocated memory:
+    delete[] xList; delete[] a; delete[] b; delete[] c;
+    delete[] argumentList; delete[] valueList;
 
     return 0;
 
