@@ -3,7 +3,7 @@
 #include "gaussElim.h"
 #include "time.h"
 
-double* general_algo(int n, double x_0, double x_np1, double a, double b, double c)
+double* general_algo(int n, double x_0, double x_np1, double* a, double* b, double* c)
 {
     /* 
     Returns solution to general algo and time elapsed.
@@ -13,7 +13,7 @@ double* general_algo(int n, double x_0, double x_np1, double a, double b, double
     and backward substitution. 
 
     Inputs: 
-        a, b, c are the diagonal arrays.
+        a, b, c are arrays containing the elements of the diagonals.
         a has length n, b has length n+1, c has length n.
         n: the number of points excluding the two end points (in total n+2 points).
         x_0: Start point.
@@ -22,11 +22,9 @@ double* general_algo(int n, double x_0, double x_np1, double a, double b, double
         v: solution, array of length n+2.
     */
 
-    // Calculate h. Using long double for increased precision.
-    long double h = (x_np1-x_0)/(n+1);
+    double h = (x_np1-x_0)/(n+1);
 
     // Create xList from end points (x_0, x_np1).
-    idx = 0;
     double *xList = new double[n+2]; // n+2 points in total when including the end points. 
     xList[0] = x_0; // End points.
     xList[n+1] = x_np1;
@@ -78,66 +76,64 @@ double* general_algo(int n, double x_0, double x_np1, double a, double b, double
 }
 
 
-double* special_algo(int n, double x_0, double x_np1, int a, int b)
-{
-/* Returns solution to the special algorithm and elapsed time.
+double* special_algo(int n, double x_0, double x_np1, int a, int b) {
+    /* Returns solution to the special algorithm and elapsed time.
 
-This function calculates v for the general case, i.e a 
-tri-diagonal matrix, where as opposed to the general case
-a and c are equal and all elements along the diagonal and 
-off-diagonals are identical. 
-Inputs:
-    a, b: integers, diagonal elements
-    n: interger, number of points
-    x_0: double, point 0
-    x_np1: double, point n+1
-Outputs:
-    v: double, solution of size n+1 */
+    This function calculates v for the general case, i.e a 
+    tri-diagonal matrix, where as opposed to the general case
+    a and c are equal and all elements along the diagonal and 
+    off-diagonals are identical. 
+    Inputs:
+        a, b: integers, diagonal elements
+        n: interger, number of points
+        x_0: double, point 0
+        x_np1: double, point n+1
+    Outputs:
+        v: double, solution of size n+1 */
 
-// Calculate h. Using long double for increased precision.
-double h = (x_np1-x_0)/(n+1);
-double hh = h*h
-double *fList = new double[n+2]; double *g = new double[n+2]; 
-double *xList = new double[n+2]; double *v = new double[n+2];
-double *b_sub = new double[n+2]; double *g_sub = new double[n+2];
+    // Calculate h. Using long double for increased precision.
+    double h = (x_np1-x_0)/(n+1);
+    double hh = h*h;
+    double *fList = new double[n+2]; double *g = new double[n+2]; 
+    double *xList = new double[n+2]; double *v = new double[n+2];
+    double *b_sub = new double[n+2]; double *g_sub = new double[n+2];
 
-// Create xList from end points (x_0, x_np1).
-idx = 0;
-xList[0] = x_0; // End points.
-xList[n+1] = x_np1;
+    // Create xList from end points (x_0, x_np1).
+    xList[0] = x_0; // End points.
+    xList[n+1] = x_np1;
 
-fList[0] = x_0; // End points.
-fList[n+1] = x_np1;
-for (i=1; i<=n; i++) { xList[i] = x_0 + i*h; }    // Step size h between points.
+    fList[0] = x_0; // End points.
+    fList[n+1] = x_np1;
+    for (i=1; i<=n; i++) { xList[i] = x_0 + i*h; }    // Step size h between points.
 
-for (i=0; i<=n+1; i++) {
-    fList[i] = f(xList[i]);
-    g[i] = hh * fList[i];
-}
-
-clock_t start, finish; // declare start and final time
-start = clock();
-
-// Forward substitution
-b_sub[1] = b 
-for (i=2; i<=n+1; i++){
-    b_sub[i] = (i+1)/i
-    g_sub[i] = g[i] + (g_sub[i-1]/b_sub[i-1])
-    } 
-v[n] = g_sub[n] / b_sub[n]
-
-// Backward substitution
-for (i=n-1; i>0; i--){
-    v[i] = (g_sub[i] + v[i+1])/b_sub[i]
+    for (i=0; i<=n+1; i++) {
+        fList[i] = f(xList[i]);
+        g[i] = hh * fList[i];
     }
-        
-finish = clock();
 
-delete [] xList; delete [] fList; delete [] g;
-delete [] b_sub; delete [] g_sub;
+    clock_t start, finish; // declare start and final time
+    start = clock();
 
-return v, ((finish - start)/CLOCKS_PER_SEC); 
-// End special algo function
+    // Forward substitution
+    b_sub[1] = b;
+    for (i=2; i<=n+1; i++){
+        b_sub[i] = (i+1)/i;
+        g_sub[i] = g[i] + (g_sub[i-1]/b_sub[i-1]);
+        } 
+    v[n] = g_sub[n] / b_sub[n];
+
+    // Backward substitution
+    for (i=n-1; i>0; i--){
+        v[i] = (g_sub[i] + v[i+1])/b_sub[i];
+        }
+            
+    finish = clock();
+
+    delete [] xList; delete [] fList; delete [] g;
+    delete [] b_sub; delete [] g_sub;
+
+    return v, ((finish - start)/CLOCKS_PER_SEC); 
+    // End special algo function
 }
 
 double* relative_error(double v, double u){
@@ -153,7 +149,31 @@ double* relative_error(double v, double u){
     
     double *rel_err = new double [n+2];
     for (i=1, i<=n, i++){
-        rel_err[i] = log10(fabs((u[i] - v[i])/u[i]))
+        rel_err[i] = log10(fabs((u[i] - v[i])/u[i]));
     }
     return rel_err;
 }
+
+
+void writeToCSV(double* xList, double* yList, int listLength, std::string fileName) {
+    /* Writes the info in xList and yList as two separate columns to a comma-separated .txt
+    file. This way the data can be plotted using e.g. Python.
+    xList: Values along the x-axis.
+    yList: The corresponding data values along the y-axis. Same length as xList.
+    listLength: The number of elements (length) of xList and yList.
+    file_name: The chosen name of the new data file. If this already exists, the old file
+    will be overwritten.
+    */
+    std::ofstream file;
+    file.open(fileName);
+    // file.open(fileName, std::ios_base::app); // Use this instead of you want the program
+    // to *append* to the file instead of overwriting.
+
+    
+    for (i=0; i<=n-1; i++) {
+        file << xList[i] << "," << yList[i] << "," << std::endl;
+    }
+    
+    file.close()
+}
+
