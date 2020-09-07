@@ -1,12 +1,13 @@
 #include <iostream>
 #include <cmath>
 #include <fstream>
-#include "./gaussElim.h"
-#include "time.h"
+#include <time.h>
+#include "gaussElim.h"
 
+/*
 double* general_algo(int n, double x_0, double x_np1, double* a, double* b, double* c)
 {
-    /* 
+
     Returns solution to general algo and time elapsed.
 
     This function calculates v for the general case, where
@@ -21,7 +22,7 @@ double* general_algo(int n, double x_0, double x_np1, double* a, double* b, doub
         x_np1: End point (x_(n+1)).
     Outputs:
         v: solution, array of length n+2.
-    */
+
 
     double h = (x_np1-x_0)/(n+1);
     double hh = h*h;
@@ -44,13 +45,10 @@ double* general_algo(int n, double x_0, double x_np1, double* a, double* b, doub
     }
 
     // Forward substitution:
-    double factorDiv; // These factors will be used in the forward and backward substitutions.
-    double factorMult;
-    double factor;
     for (int i=1; i<=n-1; i++) { // Start at row 2 (index 1), end at final row (row n, index n-1).
-        factorDiv = b[i-1];
-        factorMult = a[i-1];
-        factor = factorMult/factorDiv;
+        double factorDiv = b[i-1];
+        double factorMult = a[i-1];
+        double factor = factorMult/factorDiv;
 
         // First non-zero element in the row:
         b[i] = b[i] - c[i-1]*factor;
@@ -60,9 +58,9 @@ double* general_algo(int n, double x_0, double x_np1, double* a, double* b, doub
 
     // Backward substitution:
     for (int i=n-2; i>=0; i--) { // Start at row n-1 (index n-2), end at first row (row 1, index 0).
-        factorDiv = b[i+1];
-        factorMult = c[i];
-        factor = factorMult/factorDiv;
+        double factorDiv = b[i+1];
+        double factorMult = c[i];
+        double factor = factorMult/factorDiv;
         // All upper diagonal elements gets eliminated.
         // Final element in the row:
         g[i] = g[i] - g[i+1]*factor;
@@ -73,9 +71,86 @@ double* general_algo(int n, double x_0, double x_np1, double* a, double* b, doub
     for (int i=0; i<=n-1; i++) {
         solution[i] = g[i]/b[i];
     }
-
+    delete[] fList; delete[] g; delete[] xList; 
     return solution;
 }
+
+*/
+
+void general_algo(double* solution, int n, double x_0, double x_np1, double* a, double* b, double* c)
+{
+    /* 
+    Returns solution to general algo and time elapsed.
+
+    This function calculates v for the general case, where
+    a, b and c are different values. This is done by forward 
+    and backward substitution. 
+    
+    Inputs: 
+        solution: A dynamic array of length n+2 allocated outside of this function.
+        This function fills this array with the solution values.
+        a, b, c are arrays containing the elements of the diagonals.
+        a has length n, b has length n+1, c has length n.
+        n: the number of points excluding the two end points (in total n+2 points).
+        x_0: Start point.
+        x_np1: End point (x_(n+1)).
+    Outputs:
+        No direct outputs, but the values at the address of the 'solution' array will
+        be filled with the solution values.
+    */
+
+    double h = (x_np1-x_0)/(n+1);
+    double hh = h*h;
+
+    // Create xList from end points (x_0, x_np1).
+    double *xList = new double[n+2]; // n+2 points in total when including the end points. 
+    xList[0] = x_0; // End points.
+    xList[n+1] = x_np1;
+    for (int i=1; i<=n; i++) { xList[i] = x_0 + i*h; }    // Step size h between points.
+
+    // Create fList (an array containing f(x) for all elements in xList, including end points):
+    double *fList = new double[n+2];
+    double *g = new double[n+2];    // g_i = h^2*f_i
+    //double *solution = new double[n+2]; // The solution of v.
+    solution[0] = 0; solution[n+1] = 0; // Boundary conditions.
+
+    for (int i=0; i<=n+1; i++) { // Including end points.
+        fList[i] = f(xList[i]);
+        g[i] = hh*fList[i];
+    }
+
+    // Forward substitution:
+    for (int i=1; i<=n-1; i++) { // Start at row 2 (index 1), end at final row (row n, index n-1).
+        double factorDiv = b[i-1];
+        double factorMult = a[i-1];
+        double factor = factorMult/factorDiv;
+
+        // First non-zero element in the row:
+        b[i] = b[i] - c[i-1]*factor;
+        // Final element in the row:
+        g[i] = g[i] - g[i-1]*factor;
+    }
+
+    // Backward substitution:
+    for (int i=n-2; i>=0; i--) { // Start at row n-1 (index n-2), end at first row (row 1, index 0).
+        double factorDiv = b[i+1];
+        double factorMult = c[i];
+        double factor = factorMult/factorDiv;
+        // All upper diagonal elements gets eliminated.
+        // Final element in the row:
+        g[i] = g[i] - g[i+1]*factor;
+    }
+
+    // Normalize the diagonal (divide all row i by b[i] for all rows) in order to get the 
+    // solution for v:
+    for (int i=0; i<=n-1; i++) {
+        solution[i] = g[i]/b[i];
+    }
+    delete[] fList; delete[] g; delete[] xList; 
+    //return solution;
+}
+
+
 
 
 double* special_algo(int n, double x_0, double x_np1, int a, int b) {
@@ -157,7 +232,7 @@ double* relative_error(double* v, double* u, int n){
 }
 
 
-void writeToCSV(double* xList, double* yList, int n, int listLength, std::string fileName) {
+void writeDataToCSV(double* xList, double* yList, int listLength, std::string fileName) {
     /* Writes the info in xList and yList as two separate columns to a comma-separated .txt
     file. This way the data can be plotted using e.g. Python.
     xList: Values along the x-axis.
@@ -171,7 +246,7 @@ void writeToCSV(double* xList, double* yList, int n, int listLength, std::string
     // file.open(fileName, std::ios_base::app); // Use this instead of you want the program
     // to *append* to the file instead of overwriting.
 
-    for (int i=0; i<=n-1; i++) {
+    for (int i=0; i<=listLength-1; i++) {
         file << std::to_string(xList[i]) << "," << std::to_string(yList[i]) << "," << std::endl;
     }
     

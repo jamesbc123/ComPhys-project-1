@@ -3,12 +3,9 @@
 #include <string>
 #include <iomanip>
 #include <cmath>
-#include "gaussElim.h"
+#include "gaussElim.cpp"
 
 using namespace std;
-// object for output files
-ofstream ofile;
-
 
 /* Description of the whole data plotting process:
 - Set the initial parameter values of the problem.
@@ -44,28 +41,38 @@ int main() {
     double *a = new double[n-1];    // Lower diagonal.
     double *b = new double[n];      // Middle diagonal.
     double *c = new double[n-1];    // Upper diagonal.
-    for (int i=0; i<=n-1; i++) {
+    for (int i=0; i<=n-2; i++) {
         a[i] = -1;
         b[i] = 2;
         c[i] = -1;
     }
+    b[n-1] = 2; // Fill the last element of b.
 
-    double* solution = general_algo(n, x_0, x_np1, a, b, c);
+
+    double* solution = new double[n+2];
+    general_algo(solution, n, x_0, x_np1, a, b, c);
+    //double* solution = general_algo(n, x_0, x_np1, a, b, c);
     // ^ 'solution' is an array of length n+2.
 
     // ### STEP 3 ### Choose what values to write to file (what to plot).
     // Choice: Plot the solution as a function of x:
-    double* argumentList = xList;   // The x-axis of the plot.
-    double* valueList = solution;   // The y-axis of the plot.
+    /*double* argumentList = new double[n+2];
+    double* valueList = new double[n+2];
+    argumentList = xList;   // The x-axis of the plot.
+    valueList = solution;   // The y-axis of the plot. */
+    
+    double* argumentList = xList;
+    double* valueList = solution;
 
     // ### STEP 4 ### Write the solution to a .csv file.
     string fileName = "data.txt"; // Or 'data.csv'?
-    writeDataToCSV(argumentList, valueList, fileName);
-
+    int listLength = n+2;
+    cout << "listLength: " << listLength << endl;
+    writeDataToCSV(argumentList, valueList, listLength, fileName);
+    
     // Delete all allocated memory:
-    delete[] xList; delete[] a; delete[] b; delete[] c;
-    delete[] argumentList; delete[] valueList;
-
+    delete[] a; delete[] b; delete[] c;
+    delete[] xList; delete[] solution;
     return 0;
 
     // ### STEP 5 ### In Python: Read the .csv file and plot it.

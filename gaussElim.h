@@ -8,16 +8,18 @@
 // and implement those functions in gaussElim.cpp
 
 
-double f(double x) {return 100.0*exp(-10.0*x);}
+double f(double x) { return 100.0*exp(-10.0*x); }
 
-double exact(double x) {return 1.0-(1-exp(-10))*x-exp(-10*x);}
+double exact(double x) { return 1.0-(1-exp(-10))*x-exp(-10*x); }
 
-double* general_algo(int n, double x_0, double x_np1, double* a, double* b, double* c);
+void general_algo(double* solution, int n, double x_0, double x_np1, double* a, double* b, double* c);
 /* Returns the solution to the general algorithm.
 This function calculates v for the general case, where the diagonals
 a, b and c can have any elements. This is done by forward and backward
 substitution. 
 Inputs: 
+    solution: A dynamic array of length n+2 allocated outside of this function.
+    This function fills this array with the solution values.
     a, b, c are arrays containing the elements of the diagonals.
     a has length n, b has length n+1, c has length n.
     n: the number of points, excluding the two end points (in total: n+2 points).
@@ -56,7 +58,7 @@ Outputs:
 */
 
 
-void writeDataToCSV(double* xList, double* yList, std::string fileName);
+void writeDataToCSV(double* xList, double* yList, int listLength, std::string fileName);
 /* Writes the info in xList and yList as two separate columns to a comma-separated .txt
 file. This way the data can be plotted using e.g. Python. 
 xList: Values along the x-axis.
