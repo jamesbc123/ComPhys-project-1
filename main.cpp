@@ -64,12 +64,15 @@ int main() {
     double* argumentList = xList;
     double* valueList = solution;
 
+    printArray(xList, n+2);
+    printArray(solution, n+2);
+
     // ### STEP 4 ### Write the solution to a .csv file.
     string fileName = "data.txt"; // Or 'data.csv'?
     int listLength = n+2;
-    cout << "listLength: " << listLength << endl;
+
     writeDataToCSV(argumentList, valueList, listLength, fileName);
-    
+
     // Delete all allocated memory:
     delete[] a; delete[] b; delete[] c;
     delete[] xList; delete[] solution;

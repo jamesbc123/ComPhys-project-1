@@ -12,6 +12,10 @@ double f(double x) { return 100.0*exp(-10.0*x); }
 
 double exact(double x) { return 1.0-(1-exp(-10))*x-exp(-10*x); }
 
+void printArray(double* arr, int n);
+// Prints the elements of an array. For debugging.
+
+
 void general_algo(double* solution, int n, double x_0, double x_np1, double* a, double* b, double* c);
 /* Returns the solution to the general algorithm.
 This function calculates v for the general case, where the diagonals
@@ -66,6 +70,8 @@ yList: The corresponding data values along the y-axis.
 file_name: The chosen name of the new data file. If this already exists, the old file
 will be overwritten.
 */
+
+
     
 
 

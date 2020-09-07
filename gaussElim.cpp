@@ -4,6 +4,17 @@
 #include <time.h>
 #include "gaussElim.h"
 
+
+void printArray(double* arr, int n) {
+    // Prints the elements of an array. For debugging.
+    // n: Length of the array arr.
+    std::cout << "[ ";
+    for (int i=0; i<=n-1; i++) {
+        std::cout << arr[i] << ", ";
+    }
+    std::cout << "]" << std::endl;
+}
+
 /*
 double* general_algo(int n, double x_0, double x_np1, double* a, double* b, double* c)
 {
@@ -77,8 +88,7 @@ double* general_algo(int n, double x_0, double x_np1, double* a, double* b, doub
 
 */
 
-void general_algo(double* solution, int n, double x_0, double x_np1, double* a, double* b, double* c)
-{
+void general_algo(double* solution, int n, double x_0, double x_np1, double* a, double* b, double* c) {
     /* 
     Returns solution to general algo and time elapsed.
 
@@ -144,7 +154,9 @@ void general_algo(double* solution, int n, double x_0, double x_np1, double* a, 
     // Normalize the diagonal (divide all row i by b[i] for all rows) in order to get the 
     // solution for v:
     for (int i=0; i<=n-1; i++) {
-        solution[i] = g[i]/b[i];
+        //std::cout << "g[i]: " << g[i] << std::endl;
+        //std::cout << "b[i]: " << b[i] << std::endl;
+        solution[i+1] = g[i]/b[i];  // This gives the non-end points of the solution.
     }
     delete[] fList; delete[] g; delete[] xList; 
     //return solution;
@@ -252,4 +264,3 @@ void writeDataToCSV(double* xList, double* yList, int listLength, std::string fi
     
     file.close();
 }
-
