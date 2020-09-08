@@ -1,14 +1,88 @@
 #include <iostream>
 #include <fstream>
-#include "gaussElim.h"
 #include <string>
 #include <iomanip>
 #include <cmath>
+#include "gaussElim.cpp"
 
 using namespace std;
-// object for output files
-ofstream ofile;
 
+/* Description of the whole data plotting process:
+- Set the initial parameter values of the problem.
+- Use the functions in gaussElim.h to solve the system of linear equations (using either
+general_algo or special_algo).
+- Write this data to a .csv file using the writeDataToCSV function.
+- Open the Python file main.py and read the data from the .csv file.
+- Plot the data using Python. Make sure the title and labels are correct
+for each plot.
+*/
+int main() {
+    // This case: General algorithm.
+
+    // ### STEP 1 ### Initialize the parameters of the problem.
+    // Boundaries for x:
+    double x_0 = 0;
+    double x_np1 = 1;
+
+    // Choose the number of grid points, n:
+    int n = 10;
+
+    // Step value:
+    double h = (x_np1-x_0)/(n+1);
+
+    // Create xList, the list of all x values (n+2 points including end points):
+    double *xList = new double[n+2];
+    xList[0] = x_0;
+    xList[n+1] = x_np1;
+    for (int i=1; i<=n; i++) { xList[i] = x_0 + i*h; } 
+
+    // ### STEP 2 ### Get the solution of the differential equation.
+    // Make the diagonal arrays:
+    double *a = new double[n-1];    // Lower diagonal.
+    double *b = new double[n];      // Middle diagonal.
+    double *c = new double[n-1];    // Upper diagonal.
+    for (int i=0; i<=n-2; i++) {
+        a[i] = -1;
+        b[i] = 2;
+        c[i] = -1;
+    }
+    b[n-1] = 2; // Fill the last element of b.
+
+
+    double* solution = new double[n+2];
+    general_algo(solution, n, x_0, x_np1, a, b, c);
+    //double* solution = general_algo(n, x_0, x_np1, a, b, c);
+    // ^ 'solution' is an array of length n+2.
+
+    // ### STEP 3 ### Choose what values to write to file (what to plot).
+    // Choice: Plot the solution as a function of x:
+    /*double* argumentList = new double[n+2];
+    double* valueList = new double[n+2];
+    argumentList = xList;   // The x-axis of the plot.
+    valueList = solution;   // The y-axis of the plot. */
+    
+    double* argumentList = xList;
+    double* valueList = solution;
+
+    printArray(xList, n+2);
+    printArray(solution, n+2);
+
+    // ### STEP 4 ### Write the solution to a .csv file.
+    string fileName = "data.txt"; // Or 'data.csv'?
+    int listLength = n+2;
+
+    writeDataToCSV(argumentList, valueList, listLength, fileName);
+
+    // Delete all allocated memory:
+    delete[] a; delete[] b; delete[] c;
+    delete[] xList; delete[] solution;
+    return 0;
+
+    // ### STEP 5 ### In Python: Read the .csv file and plot it.
+}
+
+
+/*
 int main(int argc, char *argv[]){
   int exponent; 
     string filename;
@@ -70,3 +144,4 @@ int main(int argc, char *argv[]){
     }
     return 0;
 }
+*/
