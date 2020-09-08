@@ -7,14 +7,15 @@ Created on Tue Sep  1 12:56:53 2020
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
-
+import os
 # Change the font size of all figures.
 plt.rcParams.update({'font.size': 22})
 
 # Decide what to plot
 plot_error = False
 plot_num_and_exact = False
-print_timing = True
+print_timing = False
+plot_lu_decomp = True
 
 if plot_error or plot_num_and_exact:
     toi = pd.read_csv("./Results/1.6GBtoi.csv")
@@ -69,3 +70,73 @@ if plot_num_and_exact:
 if print_timing:
     toi_timing = pd.read_csv("./Results/1.6GBtoiTiming.csv")
     print(toi_timing.to_latex(index = False))
+    
+if plot_lu_decomp:
+      fig = plt.figure(figsize=(10,10))
+      label_added = False
+      for filename in os.listdir("./"):
+          if filename.endswith(".txt"):
+                  toi_lu = np.loadtxt(filename)
+                  toi_lu.reshape((-1,4))
+                  max_error = toi_lu[:,3].max()
+                  
+                  h = 1/(toi_lu.shape[0] + 1)
+                  if not label_added:
+                        plt.plot(np.log10(h), max_error, marker="^", 
+                                 color ="k",
+                                 label="LU Decomposition")
+                        label_added = True
+                  else:
+                        plt.plot(np.log10(h), max_error, marker="^", 
+                                 color ="k")
+      plt.xlabel("Log(h)")
+      plt.ylabel("Maximum Relative Error")
+      plt.legend()
+      plt.savefig("./Results/error_vs_h_lu.png")
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
