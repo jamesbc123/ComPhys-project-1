@@ -3,6 +3,7 @@
 
 #include <iostream>
 #include <cmath>
+#include <time.h>
 
 // Declare all the functions to be used for Gaussian elimination here,
 // and implement those functions in gaussElim.cpp
@@ -16,7 +17,7 @@ void printArray(double* arr, int n);
 // Prints the elements of an array. For debugging.
 
 
-void general_algo(double* solution, int n, double x_0, double x_np1, double* a, double* b, double* c);
+double general_algo(double* solution, int n, double x_0, double x_np1, double* a, double* b, double* c);
 /* Returns the solution to the general algorithm.
 This function calculates v for the general case, where the diagonals
 a, b and c can have any elements. This is done by forward and backward
@@ -34,7 +35,7 @@ Outputs:
 */
 
 
-double* special_algo(int n, double x_0, double x_np1, int a, int b);
+double special_algo(double* solution, int n, double x_0, double x_np1, double a, double b);
 /* Returns solution to the special algorithm and elapsed time.
 
 This function calculates v for the general case, i.e a 
